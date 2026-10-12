@@ -9,6 +9,11 @@ import (
 	_ "modernc.org/sqlite" // Yeni pure-Go SQLite sürücümüz
 )
 
+// burada db bir struct içerisine alınıp sonrasında farklı yerlere aktarılabilir
+// buradaki yaklaşım db kontrolleri çökme kontrolleri ve benzeri durumlar için
+// rahat kullanım sağlar onun dışında musteri menu islem hesap birer module olarak
+// davranılabilir
+
 func main() {
 	// 1. Veritabanı dosyasını aç (dosya yoksa otomatik oluşturur)
 	var err error
