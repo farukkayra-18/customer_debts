@@ -124,7 +124,7 @@ func HandleIslem(w http.ResponseWriter, r *http.Request) {
 		for rows.Next() {
 			var i Islem
 			if err := rows.Scan(&i.ID_Islem, &i.MusteriID, &i.UrunAdi, &i.Tutar, &i.IslemTipi, &i.Durum); err != nil {
-				http.Error(w, "Veritabanı taraması başarısız oldu", http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			islemListesi = append(islemListesi, i)
@@ -146,10 +146,29 @@ func HandleIslem(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Geçersiz işlem bilgileri", http.StatusBadRequest)
 			return
 		}
-		_, err = db.Exec("INSERT INTO islemler (musteri_id, urun_adi, tutar, islem_tipi) VALUES (?, ?, ?, ?)", islem.MusteriID, islem.UrunAdi, islem.Tutar, islem.IslemTipi)
-		if err != nil {
-			http.Error(w, "İşlem eklenemedi", http.StatusInternalServerError)
-			return
+		if islem.IslemTipi == "alisveris" {
+			_, err = db.Exec("INSERT INTO islemler (musteri_id, urun_adi, tutar, islem_tipi) VALUES (?, ?, ?, ?)", islem.MusteriID, islem.UrunAdi, islem.Tutar, islem.IslemTipi)
+			if err != nil {
+				http.Error(w, "İşlem eklenemedi", http.StatusInternalServerError)
+				return
+			}
+			_, err = db.Exec("UPDATE musteriler SET borc = borc + ? WHERE musteri_id = ?", islem.Tutar, islem.MusteriID)
+			if err != nil {
+				http.Error(w, "Müşteri borcu güncellenemedi", http.StatusInternalServerError)
+				return
+			}
+		}
+		if islem.IslemTipi == "odeme" {
+			_, err = db.Exec("INSERT INTO islemler (musteri_id, urun_adi, tutar, islem_tipi) VALUES (?, ?, ?, ?)", islem.MusteriID, islem.UrunAdi, islem.Tutar, islem.IslemTipi)
+			if err != nil {
+				http.Error(w, "İşlem eklenemedi", http.StatusInternalServerError)
+				return
+			}
+			_, err = db.Exec("UPDATE musteriler SET borc = borc - ? WHERE musteri_id = ?", islem.Tutar, islem.MusteriID)
+			if err != nil {
+				http.Error(w, "Müşteri borcu güncellenemedi", http.StatusInternalServerError)
+				return
+			}
 		}
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(islem)
@@ -171,8 +190,8 @@ func HandleHesapDetay(w http.ResponseWriter, r *http.Request) {
 	sorgu := `
 	SELECT m.musteri_adi, i.urun_adi, i.tutar, i.islem_tipi, i.durum
 	FROM islemler i
-	JOIN musteriler m ON i.musteri_id = m.id_musteri
-	WHERE m.id_musteri = ?`
+	JOIN musteriler m ON i.musteri_id = m.musteri_id
+	WHERE m.musteri_id = ?`
 
 	rows, err := db.Query(sorgu, MusteriID)
 	if err != nil {
