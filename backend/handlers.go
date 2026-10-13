@@ -6,6 +6,35 @@ import (
 	"net/http"
 )
 
+// Handler katmanı iş mantığını üstlenmez.
+// Temel sorumluluğu HTTP isteği ile uygulamanın iş mantığı
+// arasında bir köprü oluşturmaktır.
+//
+// Request -> Middleware -> Handler -> Service -> Repository
+//
+// Handler:
+// Gelen HTTP isteğini karşılar, JSON verisini decode eder,
+// gerekli parametreleri çıkartır ve service katmanına iletir.
+// Service sonucunu uygun HTTP yanıtına dönüştürür.
+// İş kurallarını veya veritabanı işlemlerini içermez.
+//
+// Service:
+// Uygulamanın iş mantığından sorumludur.
+// Gelen verilerin geçerliliğini, tutarlılığını ve iş kurallarına
+// uygunluğunu denetler. Gerekli dönüşümleri gerçekleştirir,
+// işlemleri koordine eder ve repository katmanını kullanır.
+// HTTP protokolünden bağımsız çalışmalıdır.
+//
+// Repository:
+// Veri erişiminden ve kalıcılık işlemlerinden sorumludur.
+// SQL sorgularını çalıştırır, verileri okur ve yazar.
+// İş kurallarına ilişkin kararlar vermez.
+//
+// Temel ilke:
+// Handler isteğin nasıl alındığını,
+// Service isteğin ne anlama geldiğini ve ne yapılacağını,
+// Repository ise verinin nasıl saklanacağını bilir.
+
 func HandleMenu(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		menuListesi := []Menu{}

@@ -10,6 +10,11 @@ import (
 
 var db *sql.DB
 
+//buradaki yapılmak istenen kısım migration.sql içerisinde yazılıp tek
+//seferde edecute ettirilebilir sonra farklı migrationlar bağlanarak
+//zamanla farklı tablo gereklilikleri ve benzeri durumların eklenmesiyle
+//otomatik olarak sistemdeki veri sistemleri eşitlenip son duruma geçer
+
 func tablolariOlustur(db *sql.DB) {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS musteriler (
     	musteri_id INTEGER PRIMARY KEY AUTOINCREMENT,
